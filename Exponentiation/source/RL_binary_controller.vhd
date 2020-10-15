@@ -32,7 +32,23 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity RL_binary_controller is
---  Port ( );
+	generic (
+		C_block_size : integer := 256
+	);
+    Port ( 
+         clk            : in STD_LOGIC;
+        reset_n         : in STD_LOGIC;
+        
+        key             : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+        ready_out       : in STD_LOGIC;
+        output_valid_P  : in STD_LOGIC;
+        output_valid_C  : in STD_LOGIC;
+        
+        true_bit_ready  : out STD_LOGIC;
+        next_bit_ready  : out STD_LOGIC;
+        ready_in        : out STD_LOGIC;
+        valid_out       : out STD_LOGIC
+    );
 end RL_binary_controller;
 
 architecture Behavioral of RL_binary_controller is

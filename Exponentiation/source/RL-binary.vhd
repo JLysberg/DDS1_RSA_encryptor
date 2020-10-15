@@ -43,23 +43,51 @@ entity RL_binary is
         valid_in        : in STD_LOGIC;
         ready_out       : in STD_LOGIC;
         modulus         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        message         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 )
+        message         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+        
+        valid_out       : out STD_LOGIC;
+        result          : out STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+        ready_in        : out STD_LOGIC
     );
 end RL_binary;
 
 architecture Behavioral of RL_binary is
-
+    signal true_bit_ready   : STD_LOGIC;
+    signal next_bit_ready   : STD_LOGIC;
+    signal output_valid_P   : STD_LOGIC;
+    signal output_valid_C   : STD_LOGIC;
 begin
 
-    RL_binary : entity work.RL_binary port map(
-        clk         => clk,
-        reset_n     => reset_n,
+    RL_binary_datapath : entity work.RL_binary_datapath port map(
+        clk             => clk,
+        reset_n         => reset_n,
         
-        key         => key,
-        valid_in    => valid_in,
-        ready_out   => ready_out,
-        modulus     => modulus,
-        message     => message
+        valid_in        => valid_in,
+        modulus         => modulus,
+        message         => message,
+        true_bit_ready  => true_bit_ready,
+        next_bit_ready  => next_bit_ready,
+        
+        output_valid_P  => output_valid_P,
+        output_valid_C  => output_valid_C,
+        result          => result
+        
+    );
+    
+        RL_binary_controller : entity work.RL_binary_controller port map(
+        clk             => clk,
+        reset_n         => reset_n,
+        
+        key             => key,
+        ready_out       => ready_out,
+        output_valid_P  => output_valid_P,
+        output_valid_C  => output_valid_C,
+        
+        true_bit_ready  => true_bit_ready,
+        next_bit_ready  => next_bit_ready,
+        ready_in        => ready_in,
+        valid_out       => valid_out
+
         
     );
 
