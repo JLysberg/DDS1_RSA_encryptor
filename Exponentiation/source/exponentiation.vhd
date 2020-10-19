@@ -33,7 +33,33 @@ end exponentiation;
 
 architecture expBehave of exponentiation is
 begin
-	result <= message xor modulus;
-	ready_in <= ready_out;
-	valid_out <= valid_in;
+	
+	RL_binary : entity work.RL_binary port map (
+	   clk         => clk,
+	   reset_n     => reset_n,
+	   
+	   key         => key,
+	   valid_in    => valid_in,
+	   ready_out   => ready_out,
+	   modulus     => modulus,
+	   message     => message,
+	   
+	   valid_out   => valid_out,
+	   result      => result,
+	   ready_in    => ready_in
+	);
+	
 end expBehave;
+
+
+
+
+
+
+
+
+
+
+
+
+

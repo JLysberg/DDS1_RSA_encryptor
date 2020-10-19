@@ -56,6 +56,10 @@ architecture Behavioral of RL_binary is
     signal next_bit_ready   : STD_LOGIC;
     signal output_valid_P   : STD_LOGIC;
     signal output_valid_C   : STD_LOGIC;
+    
+    signal P_r              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
+    signal P_nxt            : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
+    signal C_r              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
 begin
 
     RL_binary_datapath : entity work.RL_binary_datapath port map(
@@ -70,11 +74,10 @@ begin
         
         output_valid_P  => output_valid_P,
         output_valid_C  => output_valid_C,
-        result          => result
-        
+        result          => result        
     );
     
-        RL_binary_controller : entity work.RL_binary_controller port map(
+    RL_binary_controller : entity work.RL_binary_controller port map(
         clk             => clk,
         reset_n         => reset_n,
         
@@ -87,9 +90,32 @@ begin
         next_bit_ready  => next_bit_ready,
         ready_in        => ready_in,
         valid_out       => valid_out
-
-        
     );
-
+    
+    Blakley_true_bit : entity work.Blakley port map (
+        clk             => clk,
+        reset_n         => reset_n,
+        
+        input_a         => P_r,
+        input_b         => C_r,
+        key_n           => modulus,
+        bit_ready       => true_bit_ready,
+        
+        output          => C_r,
+        output_valid    => output_valid_C
+    );
+    
+    Blakley_next_bit : entity work.Blakley port map (
+        clk             => clk,
+        reset_n         => reset_n,
+        
+        input_a         => P_r,
+        input_b         => P_r,
+        key_n           => modulus,
+        bit_ready       => next_bit_ready,
+        
+        output          => P_nxt,
+        output_valid    => output_valid_C
+    );
 
 end Behavioral;

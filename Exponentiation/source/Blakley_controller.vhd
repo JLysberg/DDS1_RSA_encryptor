@@ -1,10 +1,10 @@
 ----------------------------------------------------------------------------------
 -- Company: 
--- Engineer:
+-- Engineer: 
 -- 
--- Create Date: 12.10.2020 18:21:26
+-- Create Date: 10/19/2020 03:00:09 PM
 -- Design Name: 
--- Module Name: RL_binary_controller - Behavioral
+-- Module Name: Blakley_controller - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -31,27 +31,24 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity RL_binary_controller is
-	generic (
-		C_block_size : integer := 256
-	);
-    Port ( 
+entity Blakley_controller is
+    generic (
+        C_block_size : integer := 256
+    );
+    Port (
         clk             : in STD_LOGIC;
         reset_n         : in STD_LOGIC;
+    
+        input_a         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+        bit_ready       : in STD_LOGIC;
         
-        key             : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        ready_out       : in STD_LOGIC;
-        output_valid_P  : in STD_LOGIC;
-        output_valid_C  : in STD_LOGIC;
-        
-        true_bit_ready  : out STD_LOGIC;
-        next_bit_ready  : out STD_LOGIC;
-        ready_in        : out STD_LOGIC;
-        valid_out       : out STD_LOGIC
+        add_en          : out STD_LOGIC;
+        shift_en        : out STD_LOGIC;
+        output_valid    : out STD_LOGIC
     );
-end RL_binary_controller;
+end Blakley_controller;
 
-architecture Behavioral of RL_binary_controller is
+architecture Behavioral of Blakley_controller is
 
 begin
 
