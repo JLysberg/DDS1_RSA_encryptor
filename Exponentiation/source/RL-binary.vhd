@@ -56,24 +56,29 @@ architecture Behavioral of RL_binary is
     signal next_bit_ready   : STD_LOGIC;
     signal output_valid_P   : STD_LOGIC;
     signal output_valid_C   : STD_LOGIC;
+    signal output_ready     : STD_LOGIC;
+    signal input_ready      : STD_LOGIC;
+    signal output_valid     : STD_LOGIC;
     
-    signal P_r              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
-    signal P_nxt            : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
-    signal C_r              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
+    signal P              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
+    signal P_nxt          : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
+    signal C              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
+    signal C_nxt              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
 begin
 
     RL_binary_datapath : entity work.RL_binary_datapath port map(
         clk             => clk,
         reset_n         => reset_n,
         
-        valid_in        => valid_in,
-        modulus         => modulus,
+        input_ready     => input_ready,
+        output_ready    => output_ready,
         message         => message,
-        true_bit_ready  => true_bit_ready,
-        next_bit_ready  => next_bit_ready,
+        P_nxt           => P_nxt,
+        C_nxt           => C_nxt,
+        output_valid  => output_valid,
         
-        output_valid_P  => output_valid_P,
-        output_valid_C  => output_valid_C,
+        P               => P,
+        C               => C,
         result          => result        
     );
     
@@ -81,6 +86,7 @@ begin
         clk             => clk,
         reset_n         => reset_n,
         
+        valid_in        => valid_in,
         key             => key,
         ready_out       => ready_out,
         output_valid_P  => output_valid_P,
@@ -89,19 +95,22 @@ begin
         true_bit_ready  => true_bit_ready,
         next_bit_ready  => next_bit_ready,
         ready_in        => ready_in,
-        valid_out       => valid_out
+        valid_out       => valid_out,
+        input_ready     => input_ready,
+        output_valid    => output_valid,
+        output_ready    => output_ready
     );
     
     Blakley_true_bit : entity work.Blakley port map (
         clk             => clk,
         reset_n         => reset_n,
         
-        input_a         => P_r,
-        input_b         => C_r,
+        input_a         => P,
+        input_b         => C,
         key_n           => modulus,
         bit_ready       => true_bit_ready,
         
-        output          => C_r,
+        output          => C_nxt,
         output_valid    => output_valid_C
     );
     
@@ -109,13 +118,13 @@ begin
         clk             => clk,
         reset_n         => reset_n,
         
-        input_a         => P_r,
-        input_b         => P_r,
+        input_a         => P,
+        input_b         => P,
         key_n           => modulus,
         bit_ready       => next_bit_ready,
         
         output          => P_nxt,
-        output_valid    => output_valid_C
+        output_valid    => output_valid_P
     );
 
 end Behavioral;
