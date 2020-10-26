@@ -41,16 +41,17 @@ entity Blakley is
 
         input_a         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
         input_b         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        key_n           : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );    
-        bit_ready       : in STD_LOGIC;
+        key_n           : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
         
         output          : out STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+        
+        bit_ready       : in STD_LOGIC;
+        
         output_valid    : out STD_LOGIC
     );
 end Blakley;
 
 architecture Behavioral of Blakley is
-    signal shift_en     : STD_LOGIC;
     signal add_en       : STD_LOGIC;
 begin
 
@@ -58,10 +59,11 @@ begin
         clk             => clk,
         reset_n         => reset_n,
         
-        input_b         => input_b,
+        input_a         => input_a,
         key_n           => key_n,
         add_en          => add_en,
-        shift_en        => shift_en,
+        bit_ready       => bit_ready,
+        output_valid    => output_valid,
         
         output          => output
     );
@@ -70,11 +72,10 @@ begin
         clk             => clk,
         reset_n         => reset_n,
     
-        input_a         => input_a,
+        input_b         => input_b,
         bit_ready       => bit_ready,
         
         add_en          => add_en,
-        shift_en        => shift_en,
         output_valid    => output_valid
     );
     

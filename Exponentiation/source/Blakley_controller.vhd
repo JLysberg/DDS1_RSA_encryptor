@@ -36,21 +36,88 @@ entity Blakley_controller is
         C_block_size : integer := 256
     );
     Port (
-        clk             : in STD_LOGIC;
-        reset_n         : in STD_LOGIC;
+        clk                 : in STD_LOGIC;
+        reset_n             : in STD_LOGIC;
     
-        input_a         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        bit_ready       : in STD_LOGIC;
+        input_b             : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+        bit_ready           : in STD_LOGIC;
         
-        add_en          : out STD_LOGIC;
-        shift_en        : out STD_LOGIC;
-        output_valid    : out STD_LOGIC
+        add_en              : out STD_LOGIC;
+        output_valid        : out STD_LOGIC
     );
 end Blakley_controller;
 
 architecture Behavioral of Blakley_controller is
-
+    -- Internal signals  
+    signal add_en_i         : STD_LOGIC;
+    
+    signal output_valid_i   : STD_LOGIC;
+    
+    signal bit_index        : integer;
+    signal width            : integer;
+    
+    type state_type is (STATE_IDLE, STATE_0, STATE_1, STATE_2);
+    signal state_r, state_nxt : state_type;
+    
 begin
+    width   <= C_block_size - 1;
 
+    -- Clocked state switch and reset signal
+    process(clk, reset_n) begin
+        if(reset_n = '1') then
+            state_r             <= STATE_IDLE;
+            output_valid_i      <= '0';
+            add_en_i            <= '0';
+            bit_index           <= 0;
+        elsif(clk'event and clk = '1') then
+            state_r             <= state_nxt;
+        end if;
+    end process;
+   
+    -- FSM
+    process(state_r, bit_ready) begin
+        -- Default assignments
+        state_nxt           <= STATE_IDLE;
+        output_valid_i      <= '0';
+        add_en_i            <= '0';
+        output_valid_i      <= '0';  
+        bit_index           <= 0;
+        
+        case(state_r) is 
+            when STATE_IDLE =>
+                output_valid <= '1';
+                add_en_i    <= '0';
+                bit_index   <= 0;
+                
+                if(bit_ready = '1') then
+                    state_nxt       <= STATE_0;
+                    output_valid_i  <= '0';
+                end if;
+                
+            when STATE_0 =>
+                if(bit_index = width) then
+                    output_valid_i  <= '1';
+                    state_nxt       <= STATE_IDLE;
+                else
+                    if(input_b(bit_index) = '1') then
+                        add_en_i    <= '1';
+                    else
+                        add_en_i    <= '0';
+                    end if;
+                    bit_index   <= bit_index + 1;
+                    state_nxt   <= STATE_1;
+                end if;
+            when STATE_1 =>
+                state_nxt   <= STATE_2;
+            when STATE_2 =>
+                state_nxt   <= STATE_IDLE;
+            when others =>
+                
+        end case;
+    end process;
+    
+    add_en          <= add_en_i;
+    output_valid    <= output_valid_i;
+   
 
 end Behavioral;

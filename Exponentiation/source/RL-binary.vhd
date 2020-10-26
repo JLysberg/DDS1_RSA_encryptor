@@ -52,8 +52,8 @@ entity RL_binary is
 end RL_binary;
 
 architecture Behavioral of RL_binary is
-    signal true_bit_ready   : STD_LOGIC;
-    signal next_bit_ready   : STD_LOGIC;
+    signal true_bit_valid   : STD_LOGIC;
+    signal next_bit_valid   : STD_LOGIC;
     signal output_valid_P   : STD_LOGIC;
     signal output_valid_C   : STD_LOGIC;
     signal output_ready     : STD_LOGIC;
@@ -63,7 +63,7 @@ architecture Behavioral of RL_binary is
     signal P              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
     signal P_nxt          : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
     signal C              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
-    signal C_nxt              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
+    signal C_nxt          : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
 begin
 
     RL_binary_datapath : entity work.RL_binary_datapath port map(
@@ -92,8 +92,8 @@ begin
         output_valid_P  => output_valid_P,
         output_valid_C  => output_valid_C,
         
-        true_bit_ready  => true_bit_ready,
-        next_bit_ready  => next_bit_ready,
+        true_bit_ready  => true_bit_valid,
+        next_bit_ready  => next_bit_valid,
         ready_in        => ready_in,
         valid_out       => valid_out,
         input_ready     => input_ready,
@@ -108,7 +108,7 @@ begin
         input_a         => P,
         input_b         => C,
         key_n           => modulus,
-        bit_ready       => true_bit_ready,
+        bit_ready       => true_bit_valid,
         
         output          => C_nxt,
         output_valid    => output_valid_C
@@ -121,7 +121,7 @@ begin
         input_a         => P,
         input_b         => P,
         key_n           => modulus,
-        bit_ready       => next_bit_ready,
+        bit_ready       => next_bit_valid,
         
         output          => P_nxt,
         output_valid    => output_valid_P
