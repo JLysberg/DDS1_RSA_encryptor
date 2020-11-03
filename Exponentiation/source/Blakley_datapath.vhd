@@ -63,6 +63,7 @@ begin
             R1_r   <= (others => '0');
             R2_r   <= (others => '0');
             R3_r   <= (others => '0');
+            R3_r_s <= (others => '0');
             
         elsif(clk'event and clk = '1') then
             

@@ -21,6 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.numeric_std.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -53,7 +54,7 @@ architecture Behavioral of Blakley_controller is
     
     signal output_valid_i   : STD_LOGIC;
     
-    signal bit_index        : integer;
+    signal bit_index        : unsigned(10 downto 0);
     signal width            : integer;
     
     type state_type is (STATE_IDLE, STATE_0, STATE_1, STATE_2);
@@ -64,30 +65,23 @@ begin
 
     -- Clocked state switch and reset signal
     process(clk, reset_n) begin
-        if(reset_n = '1') then
+        if(reset_n = '0') then
             state_r             <= STATE_IDLE;
             output_valid_i      <= '0';
             add_en_i            <= '0';
-            bit_index           <= 0;
+            bit_index           <= (others => '0');
         elsif(clk'event and clk = '1') then
             state_r             <= state_nxt;
         end if;
     end process;
    
     -- FSM
-    process(state_r, bit_ready) begin
-        -- Default assignments
-        state_nxt           <= STATE_IDLE;
-        output_valid_i      <= '0';
-        add_en_i            <= '0';
-        output_valid_i      <= '0';  
-        bit_index           <= 0;
-        
+    process(state_r, bit_ready) begin        
         case(state_r) is 
             when STATE_IDLE =>
-                output_valid <= '1';
+                output_valid_i <= '1';
                 add_en_i    <= '0';
-                bit_index   <= 0;
+                bit_index   <= (others => '0');
                 
                 if(bit_ready = '1') then
                     state_nxt       <= STATE_0;
@@ -99,7 +93,7 @@ begin
                     output_valid_i  <= '1';
                     state_nxt       <= STATE_IDLE;
                 else
-                    if(input_b(bit_index) = '1') then
+                    if(input_b(to_integer(bit_index)) = '1') then
                         add_en_i    <= '1';
                     else
                         add_en_i    <= '0';
@@ -112,6 +106,12 @@ begin
             when STATE_2 =>
                 state_nxt   <= STATE_IDLE;
             when others =>
+                state_nxt           <= STATE_IDLE;
+                output_valid_i      <= '0';
+                add_en_i            <= '0';
+                output_valid_i      <= '0';  
+                bit_index           <= (others => '0');
+                
                 
         end case;
     end process;
