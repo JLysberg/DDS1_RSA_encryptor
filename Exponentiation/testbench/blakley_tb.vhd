@@ -40,8 +40,8 @@ end blakley_tb;
 architecture Behavioral of blakley_tb is
 
     -- Constants
-    constant CLK_PERIOD    : time := 20 ns;
-    constant RESET_TIME    : time := 20 ns;
+    constant CLK_PERIOD    : time := 5 ns;
+    constant RESET_TIME    : time := 5 ns;
 
     signal clk          : STD_LOGIC := '0';
     signal reset_n      : STD_LOGIC := '0';
@@ -75,20 +75,19 @@ begin
     reset_proc: process
     begin
         wait for RESET_TIME;
-        reset_n <= '1';
+        reset_n     <= '1';
         wait;
     end process;
     
     -- Stimuli generation
     stimuli_proc: process
     begin
-        wait for 1*CLK_PERIOD;
+        wait for 2 * CLK_PERIOD;
         bit_ready       <= '1';
         input_a         <= (0 => '1', 3 => '1', others => '0');
         input_b         <= (0 => '1', 3 => '1', others => '0');
         key_n           <= (1 => '1', 3 => '1', others => '0');
         wait;
     end process;
-
 
 end Behavioral;

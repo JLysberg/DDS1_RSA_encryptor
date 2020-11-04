@@ -57,7 +57,7 @@ architecture Behavioral of Blakley_controller is
     signal bit_index        : unsigned(10 downto 0);
     signal width            : integer;
     
-    type state_type is (STATE_IDLE, STATE_0, STATE_1, STATE_2);
+    type state_type is (STATE_IDLE, STATE_ADD, STATE_MOD1, STATE_MOD2, STATE_SH);
     signal state_r, state_nxt : state_type;
     
 begin
@@ -67,9 +67,9 @@ begin
     process(clk, reset_n) begin
         if(reset_n = '0') then
             state_r             <= STATE_IDLE;
-            output_valid_i      <= '0';
-            add_en_i            <= '0';
-            bit_index           <= (others => '0');
+            --output_valid_i      <= '0';
+            --add_en_i            <= '0';
+            --bit_index           <= (others => '0');
         elsif(clk'event and clk = '1') then
             state_r             <= state_nxt;
         end if;
@@ -79,17 +79,17 @@ begin
     process(state_r, bit_ready) begin        
         case(state_r) is 
             when STATE_IDLE =>
-                output_valid_i <= '1';
-                add_en_i    <= '0';
-                bit_index   <= (others => '0');
+                output_valid_i  <= '1';
+                add_en_i        <= '0';
+                bit_index       <= (others => '0');
                 
                 if(bit_ready = '1') then
-                    state_nxt       <= STATE_0;
+                    state_nxt       <= STATE_ADD;
                     output_valid_i  <= '0';
                 end if;
                 
-            when STATE_0 =>
-                if(bit_index = width) then
+            when STATE_ADD =>
+                if(to_integer(bit_index) = width) then
                     output_valid_i  <= '1';
                     state_nxt       <= STATE_IDLE;
                 else
@@ -99,19 +99,24 @@ begin
                         add_en_i    <= '0';
                     end if;
                     bit_index   <= bit_index + 1;
-                    state_nxt   <= STATE_1;
+                    state_nxt   <= STATE_MOD1;
                 end if;
-            when STATE_1 =>
-                state_nxt   <= STATE_2;
-            when STATE_2 =>
-                state_nxt   <= STATE_IDLE;
+                
+            when STATE_MOD1 =>
+                state_nxt   <= STATE_MOD2;
+                
+            when STATE_MOD2 =>
+                state_nxt   <= STATE_SH;
+                
+            when STATE_SH =>
+                state_nxt   <= STATE_ADD;
+                
             when others =>
                 state_nxt           <= STATE_IDLE;
                 output_valid_i      <= '0';
                 add_en_i            <= '0';
                 output_valid_i      <= '0';  
                 bit_index           <= (others => '0');
-                
                 
         end case;
     end process;
