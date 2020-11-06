@@ -52,7 +52,7 @@ entity Blakley is
 end Blakley;
 
 architecture Behavioral of Blakley is
-    signal add_en       : STD_LOGIC;
+    signal add_en           : STD_LOGIC;
 begin
 
     Blakley_datapath : entity work.Blakley_datapath port map(
@@ -62,8 +62,6 @@ begin
         input_a         => input_a,
         key_n           => key_n,
         add_en          => add_en,
-        bit_ready       => bit_ready,
-        output_valid    => output_valid,
         
         output          => output
     );
