@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity RL_binary_datapath is
 	generic (
-		C_block_size : integer := 256
+		C_block_size : integer := 260
 	);
     Port (
         -- Clocks and resets
@@ -48,7 +48,7 @@ begin
         end if;
     end process;
     
-    process (input_ready, output_valid) begin
+    process (input_ready, output_valid, message, P_r, C_r, P_nxt, C_nxt) begin
         if(input_ready = '1') then
             P_i <= message;
             C_i <= one;

@@ -5,7 +5,7 @@ use ieee.math_real.all;
 
 entity RL_binary_controller is
 	generic (
-		C_block_size : integer := 256
+		C_block_size : integer := 260
 	);
     Port ( 
         clk             : in STD_LOGIC;
@@ -77,7 +77,7 @@ begin
         end if;
     end process;
     
-    process(state_r, output_valid_P, output_valid_C, input_ready_i) begin
+    process(state_r, output_valid_P, output_valid_C, input_ready_i, output_valid_P_r, output_valid_C_r, bit_index_r) begin
         -- Default assignments
         
         case(state_r) is
@@ -125,12 +125,14 @@ begin
                     next_bit_ready_i    <= '0';
                 else
                     output_valid_P_i <= output_valid_P_r;
+                    next_bit_ready_i    <= '1';
                 end if;
                 if(output_valid_C = '1') then
                     output_valid_C_i <= '1';
                     true_bit_ready_i    <= '0';
                 else
                     output_valid_C_i <= output_valid_C_r;
+                    true_bit_ready_i    <= '1';
                 end if;
                 if(output_valid_P_r = '1' and output_valid_C_r = '1') then
                     output_valid_i <= '1';
@@ -139,8 +141,6 @@ begin
                     output_valid_i <= '0';
                     state_nxt      <= STATE_WAITING;
                 end if;
-                true_bit_ready_i    <= '1';
-                next_bit_ready_i    <= '1';
                 output_ready_i      <= '0';
                 valid_out_i         <= '0';
                 bit_index_i         <= bit_index_r;

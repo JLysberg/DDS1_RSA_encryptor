@@ -4,7 +4,7 @@ use IEEE.numeric_std.all;
 
 entity Blakley_controller is
     generic (
-        C_block_size : integer := 256
+        C_block_size : integer := 260
     );
     Port (
         clk                 : in STD_LOGIC;

@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 
 entity exponentiation is
 	generic (
-		C_block_size : integer := 256
+		C_block_size : integer := 260
 	);
 	port (
 		--input controll

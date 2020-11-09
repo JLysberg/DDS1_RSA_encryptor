@@ -34,7 +34,7 @@ use ieee.numeric_std.all;
 
 entity Blakley_datapath is
     generic (
-        C_block_size : integer := 256
+        C_block_size : integer := 260
     );
     Port (
         clk             : in STD_LOGIC;

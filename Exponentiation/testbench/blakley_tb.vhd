@@ -33,7 +33,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity blakley_tb is
     generic (
-		C_block_size : integer := 256
+		C_block_size : integer := 260
 	);
 end blakley_tb;
 
