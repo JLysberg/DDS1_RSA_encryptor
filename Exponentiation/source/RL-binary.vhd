@@ -105,10 +105,10 @@ begin
         clk             => clk,
         reset_n         => reset_n,
         
+        modulus         => modulus,
         input_a         => P,
         input_b         => C,
-        key_n           => modulus,
-        bit_ready       => true_bit_valid,
+        input_valid     => true_bit_valid,
         
         output          => C_nxt,
         output_valid    => output_valid_C
@@ -118,10 +118,10 @@ begin
         clk             => clk,
         reset_n         => reset_n,
         
+        modulus         => modulus,
         input_a         => P,
         input_b         => P,
-        key_n           => modulus,
-        bit_ready       => next_bit_valid,
+        input_valid     => next_bit_valid,
         
         output          => P_nxt,
         output_valid    => output_valid_P

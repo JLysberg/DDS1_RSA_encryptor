@@ -48,7 +48,7 @@ architecture Behavioral of blakley_tb is
     
     signal input_a      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
     signal input_b      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
-    signal key_n        : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
+    signal modulus        : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
     signal bit_ready    : STD_LOGIC := '0';
     
     signal output       : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
@@ -62,7 +62,7 @@ begin
             reset_n         => reset_n      ,
             input_a         => input_a      ,
             input_b         => input_b      ,
-            key_n           => key_n        ,
+            modulus           => modulus        ,
             bit_ready       => bit_ready    ,
             output          => output       ,
             output_valid    => output_valid
@@ -86,7 +86,7 @@ begin
         bit_ready       <= '1';
         input_a         <= x"03026c469918f5ea097f843dc5d5259192f9d3510415841ce834324f4c237ac7";
         input_b         <= x"0cea1651ef44be1f1f1476b7539bed10d73e3aac782bd9999a1e5a790932bfe9";
-        key_n           <= x"09925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d";
+        modulus           <= x"09925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d";
         wait until output_valid = '1';
         bit_ready       <= '0';
         wait for 20 * CLK_PERIOD;

@@ -1,36 +1,6 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 10/19/2020 03:00:09 PM
--- Design Name: 
--- Module Name: Blakley_datapath - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use ieee.numeric_std.all;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+use IEEE.NUMERIC_STD.ALL;
 
 entity Blakley_datapath is
     generic (
@@ -40,26 +10,31 @@ entity Blakley_datapath is
         clk             : in STD_LOGIC;
         reset_n         : in STD_LOGIC;
     
+        modulus         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
         input_a         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        key_n           : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        add_en          : in STD_LOGIC;
-        run_en          : in STD_LOGIC;
         
-        output          : out STD_LOGIC_VECTOR ( C_block_size-1 downto 0 )
+        output          : out STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+        
+        add_en          : in STD_LOGIC;
+        run_en          : in STD_LOGIC
     );
 end Blakley_datapath;
 
 architecture Behavioral of Blakley_datapath is
-    signal R1_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-    signal R2_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-    signal R3_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+    -- Internal registers
     signal R1_r     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
     signal R2_r     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
     signal R3_r     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
     signal R3s_r    : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-    signal R4_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
     signal R4_r     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+    
+    -- Internal register inputs
+    signal R1_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+    signal R2_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+    signal R3_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+    signal R4_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
 begin
+    -- Synchronous process for reset signal and register buffering
     process (clk, reset_n) begin
         if(reset_n = '0') then
             R1_r   <= (others => '0');
@@ -91,17 +66,17 @@ begin
         end if;
     end process;
     
-    process (R1_r, key_n) begin
-        if(R1_r >= key_n) then
-            R2_i   <= std_logic_vector(unsigned(R1_r) - unsigned(key_n));
+    process (R1_r, modulus) begin
+        if(R1_r >= modulus) then
+            R2_i   <= std_logic_vector(unsigned(R1_r) - unsigned(modulus));
         else 
             R2_i   <= R1_r;
         end if;            
     end process;
     
-    process (R2_r, key_n) begin
-        if(R2_r >= key_n) then
-            R3_i   <= std_logic_vector(unsigned(R2_r) - unsigned(key_n));
+    process (R2_r, modulus) begin
+        if(R2_r >= modulus) then
+            R3_i   <= std_logic_vector(unsigned(R2_r) - unsigned(modulus));
         else 
             R3_i   <= R2_r;
         end if;              
