@@ -88,7 +88,12 @@ begin
         input_b         <= x"0cea1651ef44be1f1f1476b7539bed10d73e3aac782bd9999a1e5a790932bfe9";
         key_n           <= x"09925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d";
         wait until output_valid = '1';
+        bit_ready       <= '0';
+        wait for 20 * CLK_PERIOD;
+        bit_ready       <= '1';
+        wait until output_valid = '1';
         wait for 2 * CLK_PERIOD;
+        
         assert (not output = x"69b7f088465a71925d7828dbbc3914e783789cc79b2bec228654b09591e4df7") report "Test completed with correct output" severity note;
         assert false report "Test failed" severity failure;
         

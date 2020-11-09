@@ -43,19 +43,22 @@ entity Blakley_datapath is
         input_a         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
         key_n           : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
         add_en          : in STD_LOGIC;
+        run_en          : in STD_LOGIC;
         
         output          : out STD_LOGIC_VECTOR ( C_block_size-1 downto 0 )
     );
 end Blakley_datapath;
 
 architecture Behavioral of Blakley_datapath is
-    signal R1_i   : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-    signal R2_i   : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-    signal R3_i   : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+    signal R1_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+    signal R2_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+    signal R3_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
     signal R1_r     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
     signal R2_r     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
     signal R3_r     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
     signal R3s_r    : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+    signal R4_i     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+    signal R4_r     : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
 begin
     process (clk, reset_n) begin
         if(reset_n = '0') then
@@ -65,10 +68,18 @@ begin
             R3s_r  <= (others => '0');
             
         elsif(clk'event and clk = '1') then
-            R1_r    <= R1_i;
-            R2_r    <= R2_i;
-            R3_r    <= R3_i;
-            R3s_r   <= R3_r(C_block_size - 2 downto 0) & '0';
+            if (run_en = '1') then
+                R1_r    <= R1_i;
+                R2_r    <= R2_i;
+                R3_r    <= R3_i;
+                R3s_r   <= R3_r(C_block_size - 2 downto 0) & '0';
+                R4_r    <= R4_i;
+            else
+                R1_r    <= (others => '0');
+                R2_r    <= (others => '0');
+                R3_r    <= (others => '0');
+                R3s_r   <= (others => '0');
+            end if;
         end if;
     end process;
     
@@ -96,7 +107,15 @@ begin
         end if;              
     end process;
     
-    output  <= R3_r;
+    process (run_en, R3_r, R4_r) begin
+        if (run_en = '1') then
+            R4_i    <= R3_r;
+        else
+            R4_i    <= R4_r;
+        end if;
+    end process;
+    
+    output  <= R4_r;
                 
 end Behavioral;
 

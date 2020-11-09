@@ -14,6 +14,7 @@ entity Blakley_controller is
         bit_ready           : in STD_LOGIC;
         
         add_en              : out STD_LOGIC;
+        run_en              : out STD_LOGIC;
         output_valid        : out STD_LOGIC
     );
 end Blakley_controller;
@@ -22,6 +23,8 @@ architecture Behavioral of Blakley_controller is
     -- Internal signals  
     signal add_en_r             : STD_LOGIC;
     signal add_en_i             : STD_LOGIC;
+    signal output_valid_r       : STD_LOGIC;
+    signal run_en_i             : STD_LOGIC;
     
     signal output_valid_i       : STD_LOGIC;
 
@@ -46,6 +49,7 @@ begin
             state_r             <= state_nxt;
             bit_index_r         <= bit_index_i;
             add_en_r            <= add_en_i;
+            output_valid_r      <= output_valid_i;
         end if;
     end process;
    
@@ -53,17 +57,20 @@ begin
     process(state_r, bit_ready, input_b) begin        
         case(state_r) is 
             when STATE_IDLE =>
-                output_valid_i  <= '0';
                 add_en_i        <= '0';
+                run_en_i        <= '0';
                 bit_index_i     <= (others => '0');
                 
                 if(bit_ready = '1') then
                     state_nxt           <= STATE_ADD;
+                    output_valid_i      <= '0';
                 else 
                     state_nxt           <= STATE_IDLE;
+                    output_valid_i      <= '1';
                 end if;
                 
             when STATE_ADD =>
+                run_en_i        <= '1';
                 if(to_integer(unsigned(bit_index_r)) = width) then
                     bit_index_i     <= (others => '0');
                     output_valid_i  <= '1';
@@ -81,24 +88,28 @@ begin
                 end if;
                 
             when STATE_MOD1 =>
+                run_en_i        <= '1';
                 state_nxt           <= STATE_MOD2;
                 bit_index_i         <= bit_index_r;
                 output_valid_i      <= '0';
                 add_en_i            <= add_en_r;
                 
             when STATE_MOD2 =>
+                run_en_i        <= '1';
                 state_nxt           <= STATE_SH;
                 bit_index_i         <= bit_index_r;
                 output_valid_i      <= '0';
                 add_en_i            <= add_en_r;
                 
             when STATE_SH =>
+                run_en_i        <= '1';
                 state_nxt           <= STATE_ADD;
                 bit_index_i         <= bit_index_r;
                 output_valid_i      <= '0';
                 add_en_i            <= add_en_r;
                 
             when others =>
+                run_en_i        <= '0';
                 state_nxt           <= STATE_IDLE;
                 bit_index_i         <= (others => '0');
                 output_valid_i      <= '0';  
@@ -107,8 +118,9 @@ begin
         end case;
     end process;
     
+    run_en          <= run_en_i;
     add_en          <= add_en_r;
-    output_valid    <= output_valid_i;
+    output_valid    <= output_valid_r;
    
 
 end Behavioral;

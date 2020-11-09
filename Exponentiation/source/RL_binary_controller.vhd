@@ -121,12 +121,14 @@ begin
                 end if;
             when STATE_WAITING =>
                 if(output_valid_P = '1') then
-                    output_valid_P_i <= '1';
+                    output_valid_P_i    <= '1';
+                    next_bit_ready_i    <= '0';
                 else
                     output_valid_P_i <= output_valid_P_r;
                 end if;
                 if(output_valid_C = '1') then
                     output_valid_C_i <= '1';
+                    true_bit_ready_i    <= '0';
                 else
                     output_valid_C_i <= output_valid_C_r;
                 end if;
