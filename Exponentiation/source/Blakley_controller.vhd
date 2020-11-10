@@ -58,16 +58,18 @@ begin
             when STATE_IDLE =>
                 -- Switch to operating state if input is valid
                 if(input_valid = '1') then
-                    state_nxt   <= STATE_ADD;
+                    state_nxt       <= STATE_ADD;
+                    output_valid_i  <= '0';
                 else 
-                    state_nxt   <= STATE_IDLE;
+                    state_nxt       <= STATE_IDLE;
+                    output_valid_i  <= '1';
                 end if;
                 
                 -- Explicitly define signals to avoid latches
                 add_en_i        <= '0';
                 run_en_i        <= '0';
                 bit_index_i     <= (others => '0');
-                output_valid_i  <= output_valid_r;
+                --output_valid_i  <= output_valid_r;
                 
             when STATE_ADD =>
                 -- Enable synchronous clocking of data path registers
@@ -100,7 +102,8 @@ begin
                 -- Explicitly define signals to avoid latches
                 run_en_i            <= '1';
                 bit_index_i         <= bit_index_r;
-                output_valid_i      <= output_valid_r;
+                --output_valid_i      <= output_valid_r;
+                output_valid_i      <= '0';
                 add_en_i            <= add_en_r;
                 
             when STATE_MOD2 =>
@@ -110,7 +113,8 @@ begin
                 -- Explicitly define signals to avoid latches
                 run_en_i            <= '1';
                 bit_index_i         <= bit_index_r;
-                output_valid_i      <= output_valid_r;
+                --output_valid_i      <= output_valid_r;
+                output_valid_i      <= '0';
                 add_en_i            <= add_en_r;
                 
             when STATE_SH =>
@@ -120,6 +124,7 @@ begin
                 -- Explicitly define signals to avoid latches
                 run_en_i            <= '1';
                 bit_index_i         <= bit_index_r;
+                --output_valid_i      <= output_valid_i;
                 output_valid_i      <= '0';
                 add_en_i            <= add_en_r;
                 
