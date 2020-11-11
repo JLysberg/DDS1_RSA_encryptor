@@ -24,8 +24,7 @@ entity RL_binary is
         msgout_valid    : out STD_LOGIC;
         
         -- Output data      
-        result          : out STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 )
-        
+        result          : out STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 )       
     );
 end RL_binary;
 
@@ -49,65 +48,70 @@ architecture Behavioral of RL_binary is
 begin
 
     RL_binary_datapath : entity work.RL_binary_datapath port map(
-        clk                 => clk,
-        reset_n             => reset_n,
+        clk                 => clk              ,
+        reset_n             => reset_n          ,
         
-        message             => message,
-        P_nxt               => P_nxt,
-        C_nxt               => C_nxt,
-        system_start        => system_start,
-        blakley_finished    => blakley_finished,
+        system_start        => system_start     ,
+        blakley_finished    => blakley_finished ,
         
-        P                   => P,
-        C                   => C,
+        message             => message          ,
+        C_nxt               => C_nxt            ,
+        P_nxt               => P_nxt            ,
+        
+        C                   => C                ,
+        P                   => P                ,     
         result              => result        
     );
     
     RL_binary_controller : entity work.RL_binary_controller port map(
-        clk                     => clk,
-        reset_n                 => reset_n,
+        clk                     => clk                      ,
+        reset_n                 => reset_n                  ,
         
-        msgin_ready             => msgin_ready,
-        msgin_valid             => msgin_valid,
+        msgin_valid             => msgin_valid              ,
+        msgin_ready             => msgin_ready              ,
         
-        system_start            => system_start,
+        system_start            => system_start             ,
         
-        key                     => key,
+        key                     => key                      ,
         
-        msgout_valid            => msgout_valid,
-        msgout_ready            => msgout_ready,
+        msgout_valid            => msgout_valid             ,
+        msgout_ready            => msgout_ready             ,
         
-        blakley_C_input_valid   => blakley_C_input_valid,
-        blakley_P_input_valid   => blakley_P_input_valid,
-        blakley_C_output_valid  => blakley_C_output_valid,
-        blakley_P_output_valid  => blakley_P_output_valid,        
+        blakley_C_input_valid   => blakley_C_input_valid    ,
+        blakley_P_input_valid   => blakley_P_input_valid    ,
+        blakley_C_output_valid  => blakley_C_output_valid   ,
+        blakley_P_output_valid  => blakley_P_output_valid   ,        
         blakley_finished        => blakley_finished
     );
     
     Blakley_C : entity work.Blakley port map (
-        clk             => clk,
-        reset_n         => reset_n,
+        clk             => clk                      ,
+        reset_n         => reset_n                  ,
         
-        modulus         => modulus,
-        input_a         => P,
-        input_b         => C,
-        input_valid     => blakley_C_input_valid,
+        input_valid     => blakley_C_input_valid    ,
         
-        output          => C_nxt,
-        output_valid    => blakley_C_output_valid
+        modulus         => modulus                  ,
+        input_a         => P                        ,
+        input_b         => C                        ,
+        
+        output_valid    => blakley_C_output_valid   ,
+             
+        output          => C_nxt      
     );
     
     Blakley_P : entity work.Blakley port map (
-        clk             => clk,
-        reset_n         => reset_n,
+        clk             => clk                      ,
+        reset_n         => reset_n                  ,
         
-        modulus         => modulus,
-        input_a         => P,
-        input_b         => P,
-        input_valid     => blakley_P_input_valid,
+        input_valid     => blakley_P_input_valid    ,
         
-        output          => P_nxt,
-        output_valid    => blakley_P_output_valid
+        modulus         => modulus                  ,
+        input_a         => P                        ,
+        input_b         => P                        ,
+        
+        output_valid    => blakley_P_output_valid   ,
+                
+        output          => P_nxt      
     );
 
 end Behavioral;

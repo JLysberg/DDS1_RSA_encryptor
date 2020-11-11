@@ -33,26 +33,33 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity blakley_tb is
     generic (
-		C_block_size : integer := 256
+		C_block_size    : integer := 256
 	);
 end blakley_tb;
 
 architecture Behavioral of blakley_tb is
 
     -- Constants
-    constant CLK_PERIOD    : time := 5 ns;
-    constant RESET_TIME    : time := 5 ns;
-
+    constant CLK_PERIOD : time := 5 ns;
+    constant RESET_TIME : time := 5 ns;
+    
+    -- Utility
     signal clk          : STD_LOGIC := '0';
     signal reset_n      : STD_LOGIC := '0';
     
-    signal input_a      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
-    signal input_b      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
-    signal modulus      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
+    -- Input control
     signal input_valid  : STD_LOGIC := '0';
     
-    signal output       : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
+    -- Input data
+    signal modulus      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');    
+    signal input_a      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
+    signal input_b      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
+
+    -- Ouput control
     signal output_valid : STD_LOGIC := '0';
+    
+    -- Output data
+    signal output       : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');  
     
 begin
 
@@ -60,12 +67,17 @@ begin
         port map (
             clk             => clk          ,
             reset_n         => reset_n      ,
+            
+            input_valid     => input_valid  ,
+            
+            modulus         => modulus      ,
+            
             input_a         => input_a      ,
             input_b         => input_b      ,
-            modulus         => modulus      ,
-            input_valid     => input_valid  ,
-            output          => output       ,
-            output_valid    => output_valid
+            
+            output_valid    => output_valid ,
+            
+            output          => output                  
         );       
             
     -- Clock generation

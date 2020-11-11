@@ -29,8 +29,7 @@ entity RL_binary_controller is
         blakley_P_input_valid   : out STD_LOGIC;
         blakley_C_output_valid  : in STD_LOGIC;
         blakley_P_output_valid  : in STD_LOGIC;
-        blakley_finished        : out STD_LOGIC
-    
+        blakley_finished        : out STD_LOGIC   
     );
 end RL_binary_controller;
 
@@ -57,13 +56,15 @@ architecture Behavioral of RL_binary_controller is
     type state_type is (STATE_IDLE, STATE_START, STATE_WAITING);
     signal state_r, state_nxt       : state_type;
     
-
 begin
+    -- Checks if the message coming in is valid and if the message is ready to be sent out
+    -- If so, the system starts
     msgin_ready_i   <= msgout_ready;   
     msgin_ready     <= msgin_ready_i;
     system_start_i  <= msgin_valid and msgin_ready_i;
     system_start    <= system_start_i;
     
+    -- Clocks the new value into the state, index and output registers
     process(clk, reset_n)   begin
         if(reset_n = '0') then
             state_r                     <= STATE_IDLE;
@@ -78,8 +79,8 @@ begin
         end if;
     end process;
     
-    process(state_r, blakley_P_output_valid, blakley_C_output_valid, system_start_i, blakley_P_output_valid_r, blakley_C_output_valid_r, bit_index_r) begin
-        
+    -- State machine
+    process(state_r, blakley_P_output_valid, blakley_C_output_valid, system_start_i, blakley_P_output_valid_r, blakley_C_output_valid_r, bit_index_r) begin     
         case(state_r) is
             when STATE_IDLE =>
                 if(system_start_i = '1') then
@@ -87,36 +88,48 @@ begin
                 else
                     state_nxt   <= STATE_IDLE;
                 end if;
-                blakley_finished_i          <= '0';
+                
+                -- Explicitly define signals to avoid latches
+                bit_index_i                 <= (others => '0');
                 blakley_C_input_valid_i     <= '0';
                 blakley_P_input_valid_i     <= '0';
                 msgout_valid_i              <= '0';
-                bit_index_i                 <= (others => '0');
                 blakley_C_output_valid_i    <= '0';
                 blakley_P_output_valid_i    <= '0';
+                blakley_finished_i          <= '0';                             
+                
             when STATE_START =>
-                blakley_C_output_valid_i    <= '0';
-                blakley_P_output_valid_i    <= '0';
+                -- Check for final iteration
                 if(to_integer(unsigned(bit_index_r)) = C_block_size) then
+                    state_nxt               <= STATE_IDLE;
                     bit_index_i             <= (others => '0');
                     blakley_finished_i      <= '1';
                     blakley_C_input_valid_i <= '0';
                     blakley_P_input_valid_i <= '0';
                     msgout_valid_i          <= '1';
-                    state_nxt               <= STATE_IDLE;
-                else   
+                else
+                    state_nxt               <= STATE_WAITING;
+                
+                    -- Check for true bit in key at position bit_index and run Blakley to update C if true   
                     if (key(to_integer(unsigned(bit_index_r))) = '1') then
                         blakley_C_input_valid_i <= '1';
                     else
                         blakley_C_input_valid_i <= '0';
                     end if;
-                    blakley_finished_i      <= '0';
+                                     
+                    -- Blakeley for P should always run
                     blakley_P_input_valid_i <= '1';
+                    blakley_finished_i      <= '0';                   
                     msgout_valid_i          <= '0';
-                    bit_index_i             <= std_logic_vector(unsigned(bit_index_r) + 1);
-                    state_nxt               <= STATE_WAITING;
+                    bit_index_i             <= std_logic_vector(unsigned(bit_index_r) + 1);                    
                 end if;
+                
+                -- Explicitly define signals to avoid latches
+                blakley_C_output_valid_i    <= '0';
+                blakley_P_output_valid_i    <= '0';
+                
             when STATE_WAITING =>
+                -- Checks if P is finished, sets the Blakley_P_output_valid register input and stops Blakley P from recieving new data
                 if(blakley_P_output_valid = '1') then
                     blakley_P_output_valid_i    <= '1';
                     blakley_P_input_valid_i     <= '0';
@@ -124,6 +137,8 @@ begin
                     blakley_P_output_valid_i    <= blakley_P_output_valid_r;
                     blakley_P_input_valid_i     <= '1';
                 end if;
+                
+                -- Checks if C is finished, sets the Blakley_C_output_valid register input and stops Blakley C from recieving new data
                 if(blakley_C_output_valid = '1') then
                     blakley_C_output_valid_i    <= '1';
                     blakley_C_input_valid_i     <= '0';
@@ -131,16 +146,22 @@ begin
                     blakley_C_output_valid_i    <= blakley_C_output_valid_r;
                     blakley_C_input_valid_i     <= '1';
                 end if;
+                
+                -- Checks if both Blakleys are completed
                 if(blakley_P_output_valid_r = '1' and blakley_C_output_valid_r = '1') then
-                    blakley_finished_i  <= '1';
                     state_nxt           <= STATE_START;
+                    blakley_finished_i  <= '1';                   
                 else
-                    blakley_finished_i  <= '0';
                     state_nxt           <= STATE_WAITING;
+                    blakley_finished_i  <= '0';                   
                 end if;
+                
+                -- Explicitly define signals to avoid latches
                 msgout_valid_i  <= '0';
                 bit_index_i     <= bit_index_r;
+                
             when others =>
+                -- For undefined state, switch to IDLE and reset all signals
                 state_nxt                   <= STATE_IDLE;
                 blakley_finished_i          <= '0';
                 blakley_C_input_valid_i     <= '0';

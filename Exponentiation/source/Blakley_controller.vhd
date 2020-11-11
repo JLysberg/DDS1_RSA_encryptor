@@ -7,14 +7,20 @@ entity Blakley_controller is
         C_block_size        : integer := 256
     );
     Port (
+        -- Utility 
         clk                 : in STD_LOGIC;
         reset_n             : in STD_LOGIC;
-    
-        input_b             : in STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
+        
+        -- Input control
         input_valid         : in STD_LOGIC;
         
+        -- Input data
+        input_b             : in STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
+        
+        -- Ouput control
         output_valid        : out STD_LOGIC;
         
+        -- Blakley control       
         add_en              : out STD_LOGIC;
         run_en              : out STD_LOGIC
     );
@@ -69,7 +75,6 @@ begin
                 add_en_i        <= '0';
                 run_en_i        <= '0';
                 bit_index_i     <= (others => '0');
-                --output_valid_i  <= output_valid_r;
                 
             when STATE_ADD =>
                 -- Enable synchronous clocking of data path registers
@@ -102,7 +107,6 @@ begin
                 -- Explicitly define signals to avoid latches
                 run_en_i            <= '1';
                 bit_index_i         <= bit_index_r;
-                --output_valid_i      <= output_valid_r;
                 output_valid_i      <= '0';
                 add_en_i            <= add_en_r;
                 
@@ -113,7 +117,6 @@ begin
                 -- Explicitly define signals to avoid latches
                 run_en_i            <= '1';
                 bit_index_i         <= bit_index_r;
-                --output_valid_i      <= output_valid_r;
                 output_valid_i      <= '0';
                 add_en_i            <= add_en_r;
                 
@@ -124,7 +127,6 @@ begin
                 -- Explicitly define signals to avoid latches
                 run_en_i            <= '1';
                 bit_index_i         <= bit_index_r;
-                --output_valid_i      <= output_valid_i;
                 output_valid_i      <= '0';
                 add_en_i            <= add_en_r;
                 

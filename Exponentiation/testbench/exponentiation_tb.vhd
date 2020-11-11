@@ -4,7 +4,7 @@ use ieee.std_logic_1164.all;
 
 entity exponentiation_tb is
 	generic (
-		C_block_size : integer := 256
+		C_block_size       : integer := 256
 	);
 end exponentiation_tb;
 
@@ -15,32 +15,43 @@ architecture expBehave of exponentiation_tb is
     constant CLK_PERIOD    : time := 5 ns;
     constant RESET_TIME    : time := 5 ns;
     
-    signal clk 			: STD_LOGIC := '0';
-    signal reset_n 		: STD_LOGIC := '0';
-
-	signal message 		: STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ) := (others => '0');
-	signal key 			: STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ) := (others => '0');
-	signal msgin_valid 	: STD_LOGIC := '0';
-	signal msgin_ready 	: STD_LOGIC := '0';
-	signal msgout_ready 	: STD_LOGIC := '0';
-	signal msgout_valid 	: STD_LOGIC := '0';
-	signal result 		: STD_LOGIC_VECTOR(C_block_size-1 downto 0) := (others => '0');
-	signal modulus 		: STD_LOGIC_VECTOR(C_block_size-1 downto 0) := (others => '0');
-	--signal restart 		: STD_LOGIC := '0';
+    -- Utility
+    signal clk 			   : STD_LOGIC := '0';
+    signal reset_n 		   : STD_LOGIC := '0';
+    
+    -- Input control
+    signal msgin_valid     : STD_LOGIC := '0';
+	signal msgin_ready     : STD_LOGIC := '0';
+	
+	-- Input data
+	signal message 		   : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ) := (others => '0');
+	signal key 			   : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ) := (others => '0');
+	signal modulus 		   : STD_LOGIC_VECTOR(C_block_size-1 downto 0) := (others => '0');
+	
+	-- Ouput control
+	signal msgout_ready    : STD_LOGIC := '0';
+	signal msgout_valid    : STD_LOGIC := '0';
+	
+	-- Output data
+	signal result 		   : STD_LOGIC_VECTOR(C_block_size-1 downto 0) := (others => '0');
 
 begin
 	i_exponentiation : entity work.exponentiation
 		port map (
-			message   => message  ,
-			key       => key      ,
-			msgin_valid  => msgin_valid ,
-			msgin_ready  => msgin_ready ,
-			msgout_ready => msgout_ready,
-			msgout_valid => msgout_valid,
-			result    => result   ,
-			modulus   => modulus  ,
-			clk       => clk      ,
-			reset_n   => reset_n
+		    clk       => clk             ,
+			reset_n   => reset_n         ,
+			
+			msgin_valid  => msgin_valid  ,
+			msgin_ready  => msgin_ready  ,
+			
+			message   => message         ,
+			key       => key             ,
+			modulus   => modulus         ,
+			
+			msgout_ready => msgout_ready ,
+			msgout_valid => msgout_valid ,
+			
+			result    => result   
 		);
 		
     -- Clock generation
@@ -84,6 +95,5 @@ begin
         assert false report "Test failed" severity failure;
         
     end process;
-
-
+    
 end expBehave;
