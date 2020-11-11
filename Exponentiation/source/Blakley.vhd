@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity Blakley is
     generic (
-        C_block_size    : integer := 260
+        C_block_size    : integer := 256
     );
     Port (
         clk             : in STD_LOGIC;

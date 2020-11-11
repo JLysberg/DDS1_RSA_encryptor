@@ -33,7 +33,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity blakley_tb is
     generic (
-		C_block_size : integer := 260
+		C_block_size : integer := 256
 	);
 end blakley_tb;
 
@@ -48,8 +48,8 @@ architecture Behavioral of blakley_tb is
     
     signal input_a      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
     signal input_b      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
-    signal modulus        : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
-    signal bit_ready    : STD_LOGIC := '0';
+    signal modulus      : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
+    signal input_valid  : STD_LOGIC := '0';
     
     signal output       : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 ) := (others => '0');
     signal output_valid : STD_LOGIC := '0';
@@ -62,8 +62,8 @@ begin
             reset_n         => reset_n      ,
             input_a         => input_a      ,
             input_b         => input_b      ,
-            modulus           => modulus        ,
-            bit_ready       => bit_ready    ,
+            modulus         => modulus      ,
+            input_valid     => input_valid  ,
             output          => output       ,
             output_valid    => output_valid
         );       
@@ -83,18 +83,22 @@ begin
     stimuli_proc: process
     begin
         wait for 2 * CLK_PERIOD;
-        bit_ready       <= '1';
-        input_a         <= x"03026c469918f5ea097f843dc5d5259192f9d3510415841ce834324f4c237ac7";
+        input_valid     <= '1';
+        input_a         <= x"23026c469918f5ea097f843dc5d5259192f9d3510415841ce834324f4c237ac7";
         input_b         <= x"0cea1651ef44be1f1f1476b7539bed10d73e3aac782bd9999a1e5a790932bfe9";
-        modulus           <= x"09925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d";
+        modulus         <= x"99925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d";
+        --input_a         <= x"0000000000000000000000000000000000000000000000000000000000000015";
+        --input_b         <= x"0000000000000000000000000000000000000000000000000000000000000085";
+        --modulus         <= x"00000000000000000000000000000000000000000000000000000000000000ff";
+        --wait until output = x"0000000000000000000000000000000000000000000000000000000000000015";
         wait until output_valid = '1';
-        bit_ready       <= '0';
-        wait for 20 * CLK_PERIOD;
-        bit_ready       <= '1';
-        wait until output_valid = '1';
+        --input_valid       <= '0';
+        --wait for 20 * CLK_PERIOD;
+        --input_valid       <= '1';
+        --wait until output_valid = '1';
         wait for 2 * CLK_PERIOD;
         
-        assert (not output = x"69b7f088465a71925d7828dbbc3914e783789cc79b2bec228654b09591e4df7") report "Test completed with correct output" severity note;
+        assert (not output = x"6f905eeda812db2de8195eddd9c3f97f73499a061090f60dd5ace35e6be8695d") report "Test completed with correct output" severity note;
         assert false report "Test failed" severity failure;
         
     end process;

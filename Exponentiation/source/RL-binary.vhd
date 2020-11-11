@@ -1,130 +1,113 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 12.10.2020 17:54:18
--- Design Name: 
--- Module Name: RL-binary - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
 entity RL_binary is
 	generic (
-		C_block_size : integer := 260
+		C_block_size    : integer := 256
 	);
-    Port ( 
+    Port (
+        -- Utility
         clk             : in STD_LOGIC;
         reset_n         : in STD_LOGIC;
         
-        key             : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        valid_in        : in STD_LOGIC;
-        ready_out       : in STD_LOGIC;
-        modulus         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        message         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+        -- Input control
+        msgin_valid     : in STD_LOGIC;
+        msgin_ready     : out STD_LOGIC;
         
-        valid_out       : out STD_LOGIC;
-        result          : out STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        ready_in        : out STD_LOGIC
+        -- Input data
+        message         : in STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
+        key             : in STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
+        modulus         : in STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
+        
+        -- Ouput control
+        msgout_ready    : in STD_LOGIC;
+        msgout_valid    : out STD_LOGIC;
+        
+        -- Output data      
+        result          : out STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 )
+        
     );
 end RL_binary;
 
 architecture Behavioral of RL_binary is
-    signal true_bit_valid   : STD_LOGIC;
-    signal next_bit_valid   : STD_LOGIC;
-    signal output_valid_P   : STD_LOGIC;
-    signal output_valid_C   : STD_LOGIC;
-    signal output_ready     : STD_LOGIC;
-    signal input_ready      : STD_LOGIC;
-    signal output_valid     : STD_LOGIC;
+    -- Internal signals
+    signal blakley_C_input_valid    : STD_LOGIC;
+    signal blakley_P_input_valid    : STD_LOGIC;
     
-    signal P              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
-    signal P_nxt          : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
-    signal C              : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
-    signal C_nxt          : STD_LOGIC_VECTOR (C_block_size-1 downto 0 );
+    signal blakley_C_output_valid   : STD_LOGIC;
+    signal blakley_P_output_valid   : STD_LOGIC;
+    
+    signal system_start             : STD_LOGIC;
+    signal blakley_finished         : STD_LOGIC;
+    
+    signal C                        : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
+    signal P                        : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
+    
+    signal C_nxt                    : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
+    signal P_nxt                    : STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );    
+
 begin
 
     RL_binary_datapath : entity work.RL_binary_datapath port map(
-        clk             => clk,
-        reset_n         => reset_n,
+        clk                 => clk,
+        reset_n             => reset_n,
         
-        input_ready     => input_ready,
-        output_ready    => output_ready,
-        message         => message,
-        P_nxt           => P_nxt,
-        C_nxt           => C_nxt,
-        output_valid  => output_valid,
+        message             => message,
+        P_nxt               => P_nxt,
+        C_nxt               => C_nxt,
+        system_start        => system_start,
+        blakley_finished    => blakley_finished,
         
-        P               => P,
-        C               => C,
-        result          => result        
+        P                   => P,
+        C                   => C,
+        result              => result        
     );
     
     RL_binary_controller : entity work.RL_binary_controller port map(
-        clk             => clk,
-        reset_n         => reset_n,
+        clk                     => clk,
+        reset_n                 => reset_n,
         
-        valid_in        => valid_in,
-        key             => key,
-        ready_out       => ready_out,
-        output_valid_P  => output_valid_P,
-        output_valid_C  => output_valid_C,
+        msgin_ready             => msgin_ready,
+        msgin_valid             => msgin_valid,
         
-        true_bit_ready  => true_bit_valid,
-        next_bit_ready  => next_bit_valid,
-        ready_in        => ready_in,
-        valid_out       => valid_out,
-        input_ready     => input_ready,
-        output_valid    => output_valid,
-        output_ready    => output_ready
+        system_start            => system_start,
+        
+        key                     => key,
+        
+        msgout_valid            => msgout_valid,
+        msgout_ready            => msgout_ready,
+        
+        blakley_C_input_valid   => blakley_C_input_valid,
+        blakley_P_input_valid   => blakley_P_input_valid,
+        blakley_C_output_valid  => blakley_C_output_valid,
+        blakley_P_output_valid  => blakley_P_output_valid,        
+        blakley_finished        => blakley_finished
     );
     
-    Blakley_true_bit : entity work.Blakley port map (
+    Blakley_C : entity work.Blakley port map (
         clk             => clk,
         reset_n         => reset_n,
         
         modulus         => modulus,
         input_a         => P,
         input_b         => C,
-        input_valid     => true_bit_valid,
+        input_valid     => blakley_C_input_valid,
         
         output          => C_nxt,
-        output_valid    => output_valid_C
+        output_valid    => blakley_C_output_valid
     );
     
-    Blakley_next_bit : entity work.Blakley port map (
+    Blakley_P : entity work.Blakley port map (
         clk             => clk,
         reset_n         => reset_n,
         
         modulus         => modulus,
         input_a         => P,
         input_b         => P,
-        input_valid     => next_bit_valid,
+        input_valid     => blakley_P_input_valid,
         
         output          => P_nxt,
-        output_valid    => output_valid_P
+        output_valid    => blakley_P_output_valid
     );
 
 end Behavioral;

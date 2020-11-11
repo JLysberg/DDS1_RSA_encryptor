@@ -4,13 +4,13 @@ use IEEE.numeric_std.all;
 
 entity Blakley_controller is
     generic (
-        C_block_size : integer := 260
+        C_block_size        : integer := 256
     );
     Port (
         clk                 : in STD_LOGIC;
         reset_n             : in STD_LOGIC;
     
-        input_b             : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+        input_b             : in STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
         input_valid         : in STD_LOGIC;
         
         output_valid        : out STD_LOGIC;

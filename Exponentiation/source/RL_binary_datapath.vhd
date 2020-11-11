@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity RL_binary_datapath is
 	generic (
-		C_block_size : integer := 260
+		C_block_size : integer := 256
 	);
     Port (
         -- Clocks and resets
@@ -11,12 +11,11 @@ entity RL_binary_datapath is
         reset_n         : in STD_LOGIC;
         
         -- Data in interface 
-        input_ready     : in STD_LOGIC;
-        output_ready    : in STD_LOGIC;
+        system_start     : in STD_LOGIC;
         message         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
         P_nxt           : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
         C_nxt           : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        output_valid    : in STD_LOGIC;
+        blakley_finished    : in STD_LOGIC;
         
         -- Data out interface
         P               : out STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
@@ -48,11 +47,11 @@ begin
         end if;
     end process;
     
-    process (input_ready, output_valid, message, P_r, C_r, P_nxt, C_nxt) begin
-        if(input_ready = '1') then
+    process (system_start, blakley_finished, message, P_r, C_r, P_nxt, C_nxt) begin
+        if(system_start = '1') then
             P_i <= message;
             C_i <= one;
-        elsif(output_valid = '1') then
+        elsif(blakley_finished = '1') then
             P_i <= P_nxt;
             C_i <= C_nxt;
         else
@@ -60,14 +59,6 @@ begin
             C_i <= C_r;
         end if;
     end process;
-    
-    --process (C_r, output_ready) begin
-    --    if(output_ready = '1') then
-    --        result <= C_r;
-    --    else
-    --        result <= (others => '0');
-    --    end if;
-    --end process;
     
     result <= C_r;
     P <= P_r;

@@ -4,7 +4,7 @@ use ieee.std_logic_1164.all;
 
 entity exponentiation_tb is
 	generic (
-		C_block_size : integer := 260
+		C_block_size : integer := 256
 	);
 end exponentiation_tb;
 
@@ -20,10 +20,10 @@ architecture expBehave of exponentiation_tb is
 
 	signal message 		: STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ) := (others => '0');
 	signal key 			: STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ) := (others => '0');
-	signal valid_in 	: STD_LOGIC := '0';
-	signal ready_in 	: STD_LOGIC := '0';
-	signal ready_out 	: STD_LOGIC := '0';
-	signal valid_out 	: STD_LOGIC := '0';
+	signal msgin_valid 	: STD_LOGIC := '0';
+	signal msgin_ready 	: STD_LOGIC := '0';
+	signal msgout_ready 	: STD_LOGIC := '0';
+	signal msgout_valid 	: STD_LOGIC := '0';
 	signal result 		: STD_LOGIC_VECTOR(C_block_size-1 downto 0) := (others => '0');
 	signal modulus 		: STD_LOGIC_VECTOR(C_block_size-1 downto 0) := (others => '0');
 	--signal restart 		: STD_LOGIC := '0';
@@ -33,10 +33,10 @@ begin
 		port map (
 			message   => message  ,
 			key       => key      ,
-			valid_in  => valid_in ,
-			ready_in  => ready_in ,
-			ready_out => ready_out,
-			valid_out => valid_out,
+			msgin_valid  => msgin_valid ,
+			msgin_ready  => msgin_ready ,
+			msgout_ready => msgout_ready,
+			msgout_valid => msgout_valid,
 			result    => result   ,
 			modulus   => modulus  ,
 			clk       => clk      ,
@@ -58,19 +58,29 @@ begin
     stimuli_proc: process
     begin
         wait for 2 * CLK_PERIOD;
-        ready_out       <= '1';
-        valid_in        <= '1';
+        msgout_ready       <= '1';
+        msgin_valid        <= '1';
         --message         <= x"0000000000000000000000000000000000000000000000000000000000000015";
         --key             <= x"0000000000000000000000000000000000000000000000000000000000000085";
         --modulus         <= x"00000000000000000000000000000000000000000000000000000000000000FF";
-        message         <= x"00000000011111111222222223333333344444444555555556666666677777777";
-        key             <= x"00000000000000000000000000000000000000000000000000000000000010001";
-        modulus         <= x"099925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d";
+        message         <= x"0000000011111111222222223333333344444444555555556666666677777777";
+        key             <= x"0000000000000000000000000000000000000000000000000000000000010001";
+        modulus         <= x"99925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d";
         wait for 1 * CLK_PERIOD;
-        valid_in        <= '0';
-        wait until valid_out = '1';
+        msgin_valid        <= '0';
+        wait until msgout_valid = '1';
         wait for 2 * CLK_PERIOD;
-        assert (not result = x"23026c469918f5ea097f843dc5d5259192f9d3510415841ce834324f4c237ac7") report "Test completed with correct output" severity note;
+        --assert (result = x"023026c469918f5ea097f843dc5d5259192f9d3510415841ce834324f4c237ac7") report "Encryption failed" severity failure;
+        report "Encryption completed";
+        wait for 2 * CLK_PERIOD;
+        msgin_valid        <= '1';
+        message         <= x"23026c469918f5ea097f843dc5d5259192f9d3510415841ce834324f4c237ac7";
+        key             <= x"0cea1651ef44be1f1f1476b7539bed10d73e3aac782bd9999a1e5a790932bfe9";
+        wait for 1 * CLK_PERIOD;
+        msgin_valid        <= '0';
+        wait until msgout_valid = '1';
+        --assert (not result = x"00000000011111111222222223333333344444444555555556666666677777777") report "Test completed with correct output" severity failure;
+        wait for 2 * CLK_PERIOD;
         assert false report "Test failed" severity failure;
         
     end process;

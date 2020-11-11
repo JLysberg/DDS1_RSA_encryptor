@@ -5,162 +5,156 @@ use ieee.math_real.all;
 
 entity RL_binary_controller is
 	generic (
-		C_block_size : integer := 260
+		C_block_size            : integer := 256
 	);
-    Port ( 
-        clk             : in STD_LOGIC;
-        reset_n         : in STD_LOGIC;
+    Port (
+        -- Utility 
+        clk                     : in STD_LOGIC;
+        reset_n                 : in STD_LOGIC;
         
-        key             : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-        ready_out       : in STD_LOGIC;
-        output_valid_P  : in STD_LOGIC;
-        output_valid_C  : in STD_LOGIC;
-        valid_in        : in STD_LOGIC;
+        -- Input control
+        msgin_valid             : in STD_LOGIC;
+        msgin_ready             : out STD_LOGIC;
+        system_start            : out STD_LOGIC;
         
-        true_bit_ready  : out STD_LOGIC;
-        next_bit_ready  : out STD_LOGIC;
-        ready_in        : out STD_LOGIC;
-        valid_out       : out STD_LOGIC;
-        input_ready     : out STD_LOGIC;
-        output_valid    : out STD_LOGIC;
-        output_ready    : out STD_LOGIC
+        -- Input data
+        key                     : in STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
+        
+        -- Ouput control
+        msgout_ready            : in STD_LOGIC;
+        msgout_valid            : out STD_LOGIC;
+        
+        -- Blakley control
+        blakley_C_input_valid   : out STD_LOGIC;
+        blakley_P_input_valid   : out STD_LOGIC;
+        blakley_C_output_valid  : in STD_LOGIC;
+        blakley_P_output_valid  : in STD_LOGIC;
+        blakley_finished        : out STD_LOGIC
+    
     );
 end RL_binary_controller;
 
 architecture Behavioral of RL_binary_controller is
-    signal ready_in_i       : STD_LOGIC;
-    signal input_ready_i    : STD_LOGIC;
-    signal true_bit_ready_i : STD_LOGIC;
-    signal next_bit_ready_i : STD_LOGIC;
-    signal output_ready_i   : STD_LOGIC;
-    signal valid_out_i      : STD_LOGIC;
+    -- Internal registers
+    signal bit_index_r              : STD_LOGIC_VECTOR ( 10 downto 0 );
+    signal blakley_C_output_valid_r : STD_LOGIC;
+    signal blakley_P_output_valid_r : STD_LOGIC;
     
-    signal output_valid_i   : STD_LOGIC;
+    -- Internal register inputs
+    signal bit_index_i              : STD_LOGIC_VECTOR ( 10 downto 0 );
+    signal blakley_C_input_valid_i  : STD_LOGIC;
+    signal blakley_P_input_valid_i  : STD_LOGIC;
     
-    signal output_valid_P_i : STD_LOGIC;
-    signal output_valid_C_i : STD_LOGIC;
-    signal output_valid_P_r : STD_LOGIC;
-    signal output_valid_C_r : STD_LOGIC;
+    -- Internal control signal
+    signal msgin_ready_i            : STD_LOGIC;
+    signal system_start_i           : STD_LOGIC;
+    signal msgout_valid_i           : STD_LOGIC;
+    signal blakley_C_output_valid_i : STD_LOGIC;
+    signal blakley_P_output_valid_i : STD_LOGIC;
+    signal blakley_finished_i       : STD_LOGIC;
     
-    signal bit_index_r      : STD_LOGIC_VECTOR ( 10 downto 0 );
-    signal bit_index_i      : STD_LOGIC_VECTOR ( 10 downto 0 );
-    --signal index            : integer;
-    signal width            : integer;
-    
+    -- State registers and signals
     type state_type is (STATE_IDLE, STATE_START, STATE_WAITING);
-    signal state_r, state_nxt : state_type;
+    signal state_r, state_nxt       : state_type;
     
 
 begin
-    ready_in_i      <= ready_out;   
-    ready_in        <= ready_in_i;
-    input_ready_i   <= valid_in and ready_in_i;
-    input_ready     <= input_ready_i;
-    width           <= C_block_size;
+    msgin_ready_i   <= msgout_ready;   
+    msgin_ready     <= msgin_ready_i;
+    system_start_i  <= msgin_valid and msgin_ready_i;
+    system_start    <= system_start_i;
     
     process(clk, reset_n)   begin
         if(reset_n = '0') then
-            state_r             <= STATE_IDLE;
-            --output_valid_i      <= '0';
-            --true_bit_ready_i    <= '0';
-            --next_bit_ready_i    <= '0';
-            --output_ready_i      <= '0';
-            --valid_out_i         <= '0';
-            output_valid_P_r      <= '0';
-            output_valid_C_r      <= '0';
-            bit_index_r               <= (others => '0');
+            state_r                     <= STATE_IDLE;
+            blakley_P_output_valid_r    <= '0';
+            blakley_C_output_valid_r    <= '0';
+            bit_index_r                 <= (others => '0');
         elsif(clk'event and clk = '1') then
-            state_r             <= state_nxt;
-            bit_index_r         <= bit_index_i;
-            output_valid_P_r    <= output_valid_P_i;
-            output_valid_C_r    <= output_valid_C_i;
+            state_r                     <= state_nxt;
+            bit_index_r                 <= bit_index_i;
+            blakley_P_output_valid_r    <= blakley_P_output_valid_i;
+            blakley_C_output_valid_r    <= blakley_C_output_valid_i;
         end if;
     end process;
     
-    process(state_r, output_valid_P, output_valid_C, input_ready_i, output_valid_P_r, output_valid_C_r, bit_index_r) begin
-        -- Default assignments
+    process(state_r, blakley_P_output_valid, blakley_C_output_valid, system_start_i, blakley_P_output_valid_r, blakley_C_output_valid_r, bit_index_r) begin
         
         case(state_r) is
             when STATE_IDLE =>
-                if(input_ready_i = '1') then
-                    state_nxt <= STATE_START;
+                if(system_start_i = '1') then
+                    state_nxt   <= STATE_START;
                 else
-                    state_nxt       <= STATE_IDLE;
+                    state_nxt   <= STATE_IDLE;
                 end if;
-                output_valid_i      <= '0';
-                true_bit_ready_i    <= '0';
-                next_bit_ready_i    <= '0';
-                output_ready_i      <= '0';
-                valid_out_i         <= '0';
-                bit_index_i         <= (others => '0');
-                output_valid_C_i    <= '0';
-                output_valid_P_i    <= '0';
+                blakley_finished_i          <= '0';
+                blakley_C_input_valid_i     <= '0';
+                blakley_P_input_valid_i     <= '0';
+                msgout_valid_i              <= '0';
+                bit_index_i                 <= (others => '0');
+                blakley_C_output_valid_i    <= '0';
+                blakley_P_output_valid_i    <= '0';
             when STATE_START =>
-                output_valid_C_i     <= '0';
-                output_valid_P_i     <= '0';
-                if(to_integer(unsigned(bit_index_r)) = width) then
-                    bit_index_i          <= (others => '0');
-                    output_valid_i       <= '1';
-                    true_bit_ready_i     <= '0';
-                    next_bit_ready_i     <= '0';
-                    valid_out_i          <= '1';
-                    output_ready_i       <= '1';
-                    state_nxt            <= STATE_IDLE;
-                else
-                    output_valid_i       <= '0';
+                blakley_C_output_valid_i    <= '0';
+                blakley_P_output_valid_i    <= '0';
+                if(to_integer(unsigned(bit_index_r)) = C_block_size) then
+                    bit_index_i             <= (others => '0');
+                    blakley_finished_i      <= '1';
+                    blakley_C_input_valid_i <= '0';
+                    blakley_P_input_valid_i <= '0';
+                    msgout_valid_i          <= '1';
+                    state_nxt               <= STATE_IDLE;
+                else   
                     if (key(to_integer(unsigned(bit_index_r))) = '1') then
-                        true_bit_ready_i <= '1';
+                        blakley_C_input_valid_i <= '1';
                     else
-                        true_bit_ready_i <= '0';
+                        blakley_C_input_valid_i <= '0';
                     end if;
-                    next_bit_ready_i     <= '1';
-                    valid_out_i          <= '0';
-                    output_ready_i       <= '0';
-                    bit_index_i          <= std_logic_vector(unsigned(bit_index_r) + 1);
-                    state_nxt            <= STATE_WAITING;
+                    blakley_finished_i      <= '0';
+                    blakley_P_input_valid_i <= '1';
+                    msgout_valid_i          <= '0';
+                    bit_index_i             <= std_logic_vector(unsigned(bit_index_r) + 1);
+                    state_nxt               <= STATE_WAITING;
                 end if;
             when STATE_WAITING =>
-                if(output_valid_P = '1') then
-                    output_valid_P_i    <= '1';
-                    next_bit_ready_i    <= '0';
+                if(blakley_P_output_valid = '1') then
+                    blakley_P_output_valid_i    <= '1';
+                    blakley_P_input_valid_i     <= '0';
                 else
-                    output_valid_P_i <= output_valid_P_r;
-                    next_bit_ready_i    <= '1';
+                    blakley_P_output_valid_i    <= blakley_P_output_valid_r;
+                    blakley_P_input_valid_i     <= '1';
                 end if;
-                if(output_valid_C = '1') then
-                    output_valid_C_i <= '1';
-                    true_bit_ready_i    <= '0';
+                if(blakley_C_output_valid = '1') then
+                    blakley_C_output_valid_i    <= '1';
+                    blakley_C_input_valid_i     <= '0';
                 else
-                    output_valid_C_i <= output_valid_C_r;
-                    true_bit_ready_i    <= '1';
+                    blakley_C_output_valid_i    <= blakley_C_output_valid_r;
+                    blakley_C_input_valid_i     <= '1';
                 end if;
-                if(output_valid_P_r = '1' and output_valid_C_r = '1') then
-                    output_valid_i <= '1';
-                    state_nxt <= STATE_START;
+                if(blakley_P_output_valid_r = '1' and blakley_C_output_valid_r = '1') then
+                    blakley_finished_i  <= '1';
+                    state_nxt           <= STATE_START;
                 else
-                    output_valid_i <= '0';
-                    state_nxt      <= STATE_WAITING;
+                    blakley_finished_i  <= '0';
+                    state_nxt           <= STATE_WAITING;
                 end if;
-                output_ready_i      <= '0';
-                valid_out_i         <= '0';
-                bit_index_i         <= bit_index_r;
+                msgout_valid_i  <= '0';
+                bit_index_i     <= bit_index_r;
             when others =>
-                state_nxt           <= STATE_IDLE;
-                output_valid_i      <= '0';
-                true_bit_ready_i    <= '0';
-                next_bit_ready_i    <= '0';
-                output_ready_i      <= '0';
-                valid_out_i         <= '0';
-                bit_index_i         <= (others => '0');
-                output_valid_C_i    <= '0';
-                output_valid_P_i    <= '0';
+                state_nxt                   <= STATE_IDLE;
+                blakley_finished_i          <= '0';
+                blakley_C_input_valid_i     <= '0';
+                blakley_P_input_valid_i     <= '0';
+                msgout_valid_i              <= '0';
+                bit_index_i                 <= (others => '0');
+                blakley_C_output_valid_i    <= '0';
+                blakley_P_output_valid_i    <= '0';
         end case;
     end process;
 
-    output_valid    <= output_valid_i;
-    output_ready    <= output_ready_i;
-    true_bit_ready  <= true_bit_ready_i;
-    next_bit_ready  <= next_bit_ready_i;
-    valid_out       <= valid_out_i;
+    blakley_finished        <= blakley_finished_i;
+    blakley_C_input_valid   <= blakley_C_input_valid_i;
+    blakley_P_input_valid   <= blakley_P_input_valid_i;
+    msgout_valid            <= msgout_valid_i;
 
 end Behavioral;
