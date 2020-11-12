@@ -13,6 +13,7 @@ entity RL_binary is
         -- Input control
         msgin_valid     : in STD_LOGIC;
         msgin_ready     : out STD_LOGIC;
+        msgin_last      : in STD_LOGIC;
         
         -- Input data
         message         : in STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 );
@@ -22,6 +23,7 @@ entity RL_binary is
         -- Ouput control
         msgout_ready    : in STD_LOGIC;
         msgout_valid    : out STD_LOGIC;
+        msgout_last     : out STD_LOGIC;
         
         -- Output data      
         result          : out STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 )       
@@ -69,6 +71,7 @@ begin
         
         msgin_valid             => msgin_valid              ,
         msgin_ready             => msgin_ready              ,
+        msgin_last              => msgin_last               ,
         
         system_start            => system_start             ,
         
@@ -76,6 +79,7 @@ begin
         
         msgout_valid            => msgout_valid             ,
         msgout_ready            => msgout_ready             ,
+        msgout_last             => msgout_last              ,
         
         blakley_C_input_valid   => blakley_C_input_valid    ,
         blakley_P_input_valid   => blakley_P_input_valid    ,

@@ -22,6 +22,7 @@ architecture expBehave of exponentiation_tb is
     -- Input control
     signal msgin_valid     : STD_LOGIC := '0';
 	signal msgin_ready     : STD_LOGIC := '0';
+	signal msgin_last      : STD_LOGIC := '0';
 	
 	-- Input data
 	signal message 		   : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ) := (others => '0');
@@ -31,6 +32,7 @@ architecture expBehave of exponentiation_tb is
 	-- Ouput control
 	signal msgout_ready    : STD_LOGIC := '0';
 	signal msgout_valid    : STD_LOGIC := '0';
+	signal msgout_last     : STD_LOGIC := '0';
 	
 	-- Output data
 	signal result 		   : STD_LOGIC_VECTOR(C_block_size-1 downto 0) := (others => '0');
@@ -43,6 +45,7 @@ begin
 			
 			msgin_valid  => msgin_valid  ,
 			msgin_ready  => msgin_ready  ,
+			msgin_last   => msgin_last   ,
 			
 			message   => message         ,
 			key       => key             ,
@@ -50,6 +53,7 @@ begin
 			
 			msgout_ready => msgout_ready ,
 			msgout_valid => msgout_valid ,
+			msgout_last  => msgout_last  ,
 			
 			result    => result   
 		);
@@ -85,10 +89,12 @@ begin
         report "Encryption completed";
         wait for 2 * CLK_PERIOD;
         msgin_valid        <= '1';
+        msgin_last         <= '1';
         message         <= x"23026c469918f5ea097f843dc5d5259192f9d3510415841ce834324f4c237ac7";
         key             <= x"0cea1651ef44be1f1f1476b7539bed10d73e3aac782bd9999a1e5a790932bfe9";
         wait for 1 * CLK_PERIOD;
         msgin_valid        <= '0';
+        msgin_last         <= '0';
         wait until msgout_valid = '1';
         --assert (not result = x"00000000011111111222222223333333344444444555555556666666677777777") report "Test completed with correct output" severity failure;
         wait for 2 * CLK_PERIOD;

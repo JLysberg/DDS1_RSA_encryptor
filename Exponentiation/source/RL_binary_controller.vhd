@@ -15,6 +15,7 @@ entity RL_binary_controller is
         -- Input control
         msgin_valid             : in STD_LOGIC;
         msgin_ready             : out STD_LOGIC;
+        msgin_last              : in STD_LOGIC;
         system_start            : out STD_LOGIC;
         
         -- Input data
@@ -23,6 +24,7 @@ entity RL_binary_controller is
         -- Ouput control
         msgout_ready            : in STD_LOGIC;
         msgout_valid            : out STD_LOGIC;
+        msgout_last             : out STD_LOGIC;
         
         -- Blakley control
         blakley_C_input_valid   : out STD_LOGIC;
@@ -38,16 +40,19 @@ architecture Behavioral of RL_binary_controller is
     signal bit_index_r              : STD_LOGIC_VECTOR ( 10 downto 0 );
     signal blakley_C_output_valid_r : STD_LOGIC;
     signal blakley_P_output_valid_r : STD_LOGIC;
+    signal msgin_last_r             : STD_LOGIC;
     
     -- Internal register inputs
     signal bit_index_i              : STD_LOGIC_VECTOR ( 10 downto 0 );
     signal blakley_C_input_valid_i  : STD_LOGIC;
     signal blakley_P_input_valid_i  : STD_LOGIC;
+    signal msgin_last_i             : STD_LOGIC;
     
     -- Internal control signal
     signal msgin_ready_i            : STD_LOGIC;
     signal system_start_i           : STD_LOGIC;
     signal msgout_valid_i           : STD_LOGIC;
+    signal msgout_last_i            : STD_LOGIC;
     signal blakley_C_output_valid_i : STD_LOGIC;
     signal blakley_P_output_valid_i : STD_LOGIC;
     signal blakley_finished_i       : STD_LOGIC;
@@ -71,13 +76,25 @@ begin
             blakley_P_output_valid_r    <= '0';
             blakley_C_output_valid_r    <= '0';
             bit_index_r                 <= (others => '0');
+            msgin_last_r                <= '0';
         elsif(clk'event and clk = '1') then
             state_r                     <= state_nxt;
             bit_index_r                 <= bit_index_i;
             blakley_P_output_valid_r    <= blakley_P_output_valid_i;
             blakley_C_output_valid_r    <= blakley_C_output_valid_i;
+            msgin_last_r                <= msgin_last_i;
         end if;
     end process;
+    
+    process(msgin_last, msgin_last_r) begin
+        if (msgin_last = '1') then
+            msgin_last_i <= '1';
+        else
+            msgin_last_i <= msgin_last_r;
+        end if;
+    end process;
+    
+    msgout_last <= msgin_last_r and msgout_valid_i;
     
     -- State machine
     process(state_r, blakley_P_output_valid, blakley_C_output_valid, system_start_i, blakley_P_output_valid_r, blakley_C_output_valid_r, bit_index_r) begin     
