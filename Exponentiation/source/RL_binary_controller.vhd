@@ -63,8 +63,20 @@ architecture Behavioral of RL_binary_controller is
     
 begin
     -- Checks if the message coming in is valid and if the message is ready to be sent out
-    -- If so, the system starts
-    msgin_ready_i   <= msgout_ready;   
+    -- Also checks if encryption is currently running
+    -- If the system is not running the next message will be accepted
+    process(msgout_ready, state_r) begin
+        if(msgin_last_r = '1' and msgout_valid_i = '1') then
+            msgin_ready_i   <= '0';
+        else
+            if(state_r = STATE_IDLE) then
+                msgin_ready_i   <= msgout_ready;
+            else
+                msgin_ready_i   <= '0';
+            end if;
+        end if;
+    end process;
+    
     msgin_ready     <= msgin_ready_i;
     system_start_i  <= msgin_valid and msgin_ready_i;
     system_start    <= system_start_i;
@@ -86,6 +98,7 @@ begin
         end if;
     end process;
     
+    -- Sets the msgin_last register high when msgin_last is high and keeps it high
     process(msgin_last, msgin_last_r) begin
         if (msgin_last = '1') then
             msgin_last_i <= '1';
@@ -94,6 +107,7 @@ begin
         end if;
     end process;
     
+    -- Sets msgout_last high when msgin_last is high and the final message has been encrypted
     msgout_last <= msgin_last_r and msgout_valid_i;
     
     -- State machine
