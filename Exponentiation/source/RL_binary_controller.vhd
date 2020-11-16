@@ -66,14 +66,10 @@ begin
     -- Also checks if encryption is currently running
     -- If the system is not running the next message will be accepted
     process(msgout_ready, state_r) begin
-        if(msgin_last_r = '1' and msgout_valid_i = '1') then
-            msgin_ready_i   <= '0';
+        if(state_r = STATE_IDLE) then
+            msgin_ready_i   <= msgout_ready;
         else
-            if(state_r = STATE_IDLE) then
-                msgin_ready_i   <= msgout_ready;
-            else
-                msgin_ready_i   <= '0';
-            end if;
+            msgin_ready_i   <= '0';
         end if;
     end process;
     
@@ -94,18 +90,23 @@ begin
             bit_index_r                 <= bit_index_i;
             blakley_P_output_valid_r    <= blakley_P_output_valid_i;
             blakley_C_output_valid_r    <= blakley_C_output_valid_i;
-            msgin_last_r                <= msgin_last_i;
+            if(system_start_i = '1') then
+                msgin_last_r                <= msgin_last;
+            end if;
+            --if ready and valid then
+            --    msgin_r <= msgin_last;
+            --end
         end if;
     end process;
     
     -- Sets the msgin_last register high when msgin_last is high and keeps it high
-    process(msgin_last, msgin_last_r) begin
-        if (msgin_last = '1') then
-            msgin_last_i <= '1';
-        else
-            msgin_last_i <= msgin_last_r;
-        end if;
-    end process;
+    --process(msgin_last, msgin_last_r) begin
+    --    if (msgin_last = '1') then
+    --        msgin_last_i <= '1';
+    --    else
+    --        msgin_last_i <= msgin_last_r;
+    --    end if;
+    --end process;
     
     -- Sets msgout_last high when msgin_last is high and the final message has been encrypted
     msgout_last <= msgin_last_r and msgout_valid_i;
@@ -114,17 +115,37 @@ begin
     process(state_r, blakley_P_output_valid, blakley_C_output_valid, system_start_i, blakley_P_output_valid_r, blakley_C_output_valid_r, bit_index_r) begin     
         case(state_r) is
             when STATE_IDLE =>
-                if(system_start_i = '1') then
+                --and msgout_valid = '0'
+                if(system_start_i = '1' ) then
                     state_nxt   <= STATE_START;
                 else
                     state_nxt   <= STATE_IDLE;
                 end if;
                 
+                --if(msgout_valid = '1' and msgout_ready = '1') then
+                --    msgout_valid_i <= '0';
+                --else
+                --    msgout_valid_i <= '1';
+                --end if;             
+                
+                --if(msgout_valid_i = '1' and msgout_ready = '0') then
+                --    msgout_valid_i <= '1';
+                --else
+                --    msgout_valid_i <= '0';
+                --end if;
+                
+                --if(msgout_ready = '1' and blakley_finished = '1') then
+                --    msgout_valid_i      <= '1';
+                --    blakley_finished_i  <= '1';
+                --else
+                --    msgout_valid_i      <= '0';
+                --    blakley_finished_i  <= '0';
+                --end if;
+                
                 -- Explicitly define signals to avoid latches
                 bit_index_i                 <= (others => '0');
                 blakley_C_input_valid_i     <= '0';
                 blakley_P_input_valid_i     <= '0';
-                msgout_valid_i              <= '0';
                 blakley_C_output_valid_i    <= '0';
                 blakley_P_output_valid_i    <= '0';
                 blakley_finished_i          <= '0';                             
@@ -138,6 +159,7 @@ begin
                     blakley_C_input_valid_i <= '0';
                     blakley_P_input_valid_i <= '0';
                     msgout_valid_i          <= '1';
+                    --msgout_valid_i          <= '0';
                 else
                     state_nxt               <= STATE_WAITING;
                 
