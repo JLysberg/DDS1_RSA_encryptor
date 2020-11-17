@@ -41,6 +41,7 @@ architecture Behavioral of RL_binary_controller is
     signal blakley_C_output_valid_r : STD_LOGIC;
     signal blakley_P_output_valid_r : STD_LOGIC;
     signal msgin_last_r             : STD_LOGIC;
+    signal msgout_valid_r           : STD_LOGIC;
     
     -- Internal register inputs
     signal bit_index_i              : STD_LOGIC_VECTOR ( 10 downto 0 );
@@ -90,9 +91,18 @@ begin
             bit_index_r                 <= bit_index_i;
             blakley_P_output_valid_r    <= blakley_P_output_valid_i;
             blakley_C_output_valid_r    <= blakley_C_output_valid_i;
+            msgout_valid_r              <= msgout_valid_i;
             if(system_start_i = '1') then
                 msgin_last_r                <= msgin_last;
             end if;
+            --if(msgout_valid_i = '1' and msgout_ready = '1') then
+            --    msgout_valid_i <= '0';
+            --end if; 
+            --if(msgout_valid = '1' and msgout_ready = '1') then
+            --    msgout_valid_i <= '1';
+            --else
+            --    msgout_valid_i <= '0';
+            --end if;
             --if ready and valid then
             --    msgin_r <= msgin_last;
             --end
@@ -109,24 +119,26 @@ begin
     --end process;
     
     -- Sets msgout_last high when msgin_last is high and the final message has been encrypted
-    msgout_last <= msgin_last_r and msgout_valid_i;
+    msgout_last <= msgin_last_r and msgout_valid_r;
     
     -- State machine
-    process(state_r, blakley_P_output_valid, blakley_C_output_valid, system_start_i, blakley_P_output_valid_r, blakley_C_output_valid_r, bit_index_r) begin     
+    process(state_r, blakley_P_output_valid, blakley_C_output_valid, system_start_i, blakley_P_output_valid_r, blakley_C_output_valid_r, bit_index_r, msgout_valid_r, msgout_ready) begin     
         case(state_r) is
             when STATE_IDLE =>
                 --and msgout_valid = '0'
                 if(system_start_i = '1' ) then
                     state_nxt   <= STATE_START;
-                else
+                --elsif(msgout_valid_i = '1' and msgout_ready = '1') then
+                --    state_nxt   <= STATE_FINISHED;
+                else    
                     state_nxt   <= STATE_IDLE;
                 end if;
                 
-                --if(msgout_valid = '1' and msgout_ready = '1') then
-                --    msgout_valid_i <= '0';
-                --else
-                --    msgout_valid_i <= '1';
-                --end if;             
+                if(msgout_valid_r = '1' and msgout_ready = '1') then
+                    msgout_valid_i <= '0';
+                else
+                    msgout_valid_i <= msgout_valid_r;
+                end if;             
                 
                 --if(msgout_valid_i = '1' and msgout_ready = '0') then
                 --    msgout_valid_i <= '1';
@@ -211,7 +223,7 @@ begin
                 
                 -- Explicitly define signals to avoid latches
                 msgout_valid_i  <= '0';
-                bit_index_i     <= bit_index_r;
+                bit_index_i     <= bit_index_r;         
                 
             when others =>
                 -- For undefined state, switch to IDLE and reset all signals
@@ -229,6 +241,6 @@ begin
     blakley_finished        <= blakley_finished_i;
     blakley_C_input_valid   <= blakley_C_input_valid_i;
     blakley_P_input_valid   <= blakley_P_input_valid_i;
-    msgout_valid            <= msgout_valid_i;
+    msgout_valid            <= msgout_valid_r;
 
 end Behavioral;
