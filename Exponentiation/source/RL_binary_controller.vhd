@@ -25,6 +25,7 @@ entity RL_binary_controller is
         msgout_ready            : in STD_LOGIC;
         msgout_valid            : out STD_LOGIC;
         msgout_last             : out STD_LOGIC;
+        exp_finished            : in STD_LOGIC;
         
         -- Blakley control
         blakley_C_input_valid   : out STD_LOGIC;
@@ -122,7 +123,7 @@ begin
     msgout_last <= msgin_last_r and msgout_valid_r;
     
     -- State machine
-    process(state_r, blakley_P_output_valid, blakley_C_output_valid, system_start_i, blakley_P_output_valid_r, blakley_C_output_valid_r, bit_index_r, msgout_valid_r, msgout_ready) begin     
+    process(state_r, blakley_P_output_valid, blakley_C_output_valid, system_start_i, blakley_P_output_valid_r, blakley_C_output_valid_r, bit_index_r, msgout_valid_r, msgout_valid_i, msgout_ready, exp_finished) begin     
         case(state_r) is
             when STATE_IDLE =>
                 --and msgout_valid = '0'
@@ -134,8 +135,9 @@ begin
                     state_nxt   <= STATE_IDLE;
                 end if;
                 
-                if(msgout_valid_r = '1' and msgout_ready = '1') then
+                if(msgout_valid_r = '1' and msgout_ready = '1' and exp_finished = '1') then
                     msgout_valid_i <= '0';
+                    --msgin_ready_i  <= '1'
                 else
                     msgout_valid_i <= msgout_valid_r;
                 end if;             

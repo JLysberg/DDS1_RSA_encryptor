@@ -24,6 +24,7 @@ entity exponentiation is
 		msgout_ready  : in STD_LOGIC;
 		msgout_valid  : out STD_LOGIC;
 		msgout_last   : out STD_LOGIC;
+		exp_finished  : in STD_LOGIC;
 
 		-- Output data
 		result        : out STD_LOGIC_VECTOR ( C_block_size - 1 downto 0 )
@@ -50,6 +51,7 @@ begin
 	   msgout_ready    => msgout_ready ,
 	   msgout_valid    => msgout_valid ,
 	   msgout_last     => msgout_last  ,
+	   exp_finished    => exp_finished ,
 	   
 	   result          => result
 	);

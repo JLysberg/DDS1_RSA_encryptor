@@ -68,7 +68,7 @@ end rsa_core;
 architecture rtl of rsa_core is
 
 begin
-	i_exponentiation : entity work.exponentiation
+	control_buffer : entity work.control_buffer
 		generic map (
 			C_block_size => C_BLOCK_SIZE
 		)
